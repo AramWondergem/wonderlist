@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "Wonderlist",
+  "short_name": "Wonderlist",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#fff",
+  "description": "Lauram's shoppinglist"
+}
