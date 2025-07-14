@@ -29,14 +29,14 @@ export const Input = component$<InputProps>(
             valueSig ? $((__, el) => (valueSig.value = el.value)) : onInput$
           }
           class={cn(
-            "rounded-base border-input bg-background text-foreground file:text-foreground placeholder:text-muted-foreground focus-visible:ring-ring flex h-12 w-full border px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-12 w-full rounded-base border border-input bg-background px-3 py-1 text-sm text-foreground shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
             props.class,
           )}
           id={inputId}
           name={name}
         />
         {error && (
-          <div id={`${inputId}-error`} class="text-alert mt-1 text-sm">
+          <div id={`${inputId}-error`} class="mt-1 text-sm text-alert">
             {error}
           </div>
         )}
