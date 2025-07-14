@@ -46,7 +46,6 @@ export default component$(() => {
   const deleteListItem = useDeleteItem();
 
   const ulRef = useSignal<HTMLInputElement>();
-  const inputRef = useSignal<HTMLInputElement>();
   const isScrollToEndNeeded = useSignal(false);
 
 
@@ -105,7 +104,6 @@ export default component$(() => {
         >
           <Input
             class="flex-initial bg-foreground text-black"
-            ref={inputRef}
             type="text"
             name="listItem"
             onBlur$={(e) => {
