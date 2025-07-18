@@ -8,7 +8,7 @@ import {schema} from "../../drizzle/schema";
 import {eq} from "drizzle-orm";
 
 const getDatabase = server$(function () {
-  const sqlite = new Database("./drizzle/db/db.sqlite");
+  const sqlite = new Database(this.env.get('DB_LOCATION'));
   return drizzle(sqlite, {schema});
 })
 

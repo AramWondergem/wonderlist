@@ -1,0 +1,11 @@
+services:
+  wonderlist:
+    image: wonderlist:latest
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      DB_LOCATION: /data/db.sqlite
+      ORIGIN: http://localhost:3000
+    volumes:
+      - ./db.sqlite:/data/db.sqlite:rw
+    restart: unless-stopped

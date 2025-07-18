@@ -73,3 +73,13 @@ npm run serve
 ```
 
 Then visit [http://localhost:3000/](http://localhost:3000/)
+
+
+## Instruction for database
+
+Run the following code in the docker container to create the database. Make sure there is a file with the name which is mentioned in the env in the docker compose, see docker compose. 
+
+```aiignore
+npm run drizzle:push
+```
+

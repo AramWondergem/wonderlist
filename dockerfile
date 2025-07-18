@@ -2,7 +2,7 @@ ARG NODE_VERSION=18.18.2
 
 ################################################################################
 # Use node image for base image for all stages.
-FROM node:${NODE_VERSION}-alpine AS base
+FROM node:${NODE_VERSION} AS base
 
 # Set working directory for all build stages.
 WORKDIR /usr/src/app
@@ -41,13 +41,19 @@ ENV NODE_ENV=production
 # This is used by the application to determine the origin of requests.
 # If you don't set this, the application will default to http://localhost:3000
 # If you set a wrong origin, the application may not work correctly, for example routeAction$ will not work
-ENV ORIGIN=https://localhost:3000
+ENV ORIGIN=http://localhost:3000
+
+# Only change ownership of /data
+RUN mkdir -p /data && chown -R node:node /data
 
 # Run the application as a non-root user.
 USER node
 
-# Copy package.json so that package manager commands can be used.
+# Copy package.json and drizzle.config.ts so that package manager commands can be used.
 COPY package.json .
+COPY drizzle.config.ts .
+COPY drizzle ./drizzle
+
 
 # Copy the production dependencies from the deps stage and also
 # the built application from the build stage into the image.
