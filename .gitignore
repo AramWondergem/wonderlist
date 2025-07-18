@@ -8,6 +8,7 @@
 node_modules
 .env
 *.local
+drizzle/db
 
 # Cache
 .cache
@@ -25,11 +26,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Editor
-.vscode/*
-!.vscode/launch.json
-!.vscode/*.code-snippets
-
-.idea
+.vscode/
+.idea/
+.history/
 .DS_Store
 *.suo
 *.ntvs*
