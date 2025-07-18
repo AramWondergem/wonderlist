@@ -97,11 +97,11 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-    title: "Welcome to Qwik",
+    title: "Wonderlist", // <-- Change this to your desired title
     meta: [
         {
             name: "description",
-            content: "Qwik site description",
+            content: "Wonderlist is a simple shopping list app that allows you to add and delete items from your list.",
         },
     ],
 };
