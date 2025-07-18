@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  wonderlist:
+    image: wonderlist:latest
+    container_name: wonderlist-app
+    ports:
+      - "3000:3000"
+    environment:
+      ORIGIN: http://localhost:3000
+      DATABASE_PATH: /data/db.sqlite
+    volumes:
+      - ./drizzle/db:/data
+    restart: unless-stopped 

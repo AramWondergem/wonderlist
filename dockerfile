@@ -11,6 +11,9 @@ WORKDIR /usr/src/app
 # Create a stage for installing production dependencies.
 FROM base AS deps
 
+# Install build dependencies for better-sqlite3
+RUN apk add --no-cache python3 make g++ sqlite
+
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.yarn to speed up subsequent builds.
 # Leverage bind mounts to package.json and yarn.lock to avoid having to copy them
@@ -54,6 +57,9 @@ COPY package.json .
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY --from=build /usr/src/app/dist ./dist
 COPY --from=build /usr/src/app/server ./server
+# Copy drizzle schema and config files into the image
+COPY --from=build /usr/src/app/drizzle/schema.ts ./drizzle/schema.ts
+COPY --from=build /usr/src/app/drizzle.config.ts ./drizzle.config.ts
 
 # Expose the port that the application listens on.
 EXPOSE 3000
