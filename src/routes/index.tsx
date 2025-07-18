@@ -20,9 +20,9 @@ export const useCreateShoppingListItem = routeAction$(async function (data) {
 
 export const useDeleteShoppingListItem = routeAction$(async function (data) {
     const db = await getDb();
-    await db.delete(shoppingListItems).where(eq(shoppingListItems.id, Number(data.id)));
+    await db.delete(shoppingListItems).where(eq(shoppingListItems.id, data.id));
     return { success: true };
-}, zod$({ id: z.string() }));
+}, zod$({ id: z.number() }));
 
 export default component$(() => {
     const items = useShoppingList();
@@ -58,12 +58,15 @@ export default component$(() => {
                         key={item.id}
                     >
                         <span class="break-words flex-1 min-w-0">{item.text}</span>
-                        <Form spaReset={true} action={deleteAction} class="inline">
-                            <input type="hidden" name="id" value={item.id} />
-                            <Button size="sm" class="text-xl" type="submit">
-                                <MoDelete />
-                            </Button>
-                        </Form>
+                        <Button
+                            size="sm"
+                            class="text-xl"
+                            onClick$={async () => {
+                                await deleteAction.submit({id: item.id});
+                                isScrollToEndNeeded.value = false;
+                            }}
+                        >   <MoDelete />
+                        </Button>
                     </li>
                 ))}
             </ul>
