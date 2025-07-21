@@ -2,7 +2,7 @@ ARG NODE_VERSION=18.18.2
 
 ################################################################################
 # Use node image for base image for all stages.
-FROM node:${NODE_VERSION}-alpine AS base
+FROM node:${NODE_VERSION} AS base
 
 # Set working directory for all build stages.
 WORKDIR /usr/src/app
@@ -10,9 +10,6 @@ WORKDIR /usr/src/app
 ################################################################################
 # Create a stage for installing production dependencies.
 FROM base AS deps
-
-# Install build dependencies for better-sqlite3
-RUN apk add --no-cache python3 make g++ sqlite
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.yarn to speed up subsequent builds.
