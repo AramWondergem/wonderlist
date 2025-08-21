@@ -9,14 +9,14 @@ import { getDb } from "../db/getDb";
 
 export const useShoppingList = routeLoader$(async function () {
     const db = await getDb();
-    return db.select().from(shoppingListItems);
+    return db.select().from(shoppingListItems).orderBy(shoppingListItems.order);
 });
 
 export const useCreateShoppingListItem = routeAction$(async function (data) {
     const db = await getDb();
-    await db.insert(shoppingListItems).values({ text: data.text });
+    await db.insert(shoppingListItems).values({ text: data.text, order: data.order });
     return { success: true };
-}, zod$({ text: z.string() }));
+}, zod$({ text: z.string(), order: z.string().transform(val => parseFloat(val))}));
 
 export const useDeleteShoppingListItem = routeAction$(async function (data) {
     const db = await getDb();
@@ -31,6 +31,7 @@ export default component$(() => {
     const ulRef = useSignal<HTMLInputElement>();
     const inputRef = useSignal<HTMLInputElement>();
     const isScrollToEndNeeded = useSignal(false);
+    const lastItem = items.value.at(-1);
 
     useVisibleTask$(({ track }) => {
         track(() => items.value?.length);
@@ -86,6 +87,7 @@ export default component$(() => {
                                }
                            }}
                     />
+                    <input type="hidden" name="order" value={lastItem ? lastItem.order + 1 : 1}/>
                     <Button id="add-item-button" type="submit" look="secondary"
                             class="text-3xl bg-background text-white">
                         <MoCircleAdd/>
