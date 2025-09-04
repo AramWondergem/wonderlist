@@ -1,0 +1,53 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "c7bac70c-a687-4bb0-aa3b-369e39ce5293",
+  "prevId": "7cded365-05cb-4ab3-962f-33df9ee7ba8d",
+  "tables": {
+    "shopping_list_items": {
+      "name": "shopping_list_items",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "order": {
+          "name": "order",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {
+      "\"users\"": "\"shopping_list_items\""
+    },
+    "columns": {
+      "\"shopping_list_items\".\"name\"": "\"shopping_list_items\".\"text\""
+    }
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
