@@ -123,7 +123,7 @@ export default component$(() => {
             let newOrderDropped: number = -1;
 
 
-            if (indexDropped === indexTarget ||  indexTarget < 0 || indexTarget >= items.value.length - 1) {
+            if (indexDropped === indexTarget ||  indexTarget < 0 || indexTarget >= items.value.length) {
                 return
             }
 
