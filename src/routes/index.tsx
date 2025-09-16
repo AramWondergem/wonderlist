@@ -1,6 +1,6 @@
 import {$, component$, sync$, useSignal, useVisibleTask$} from "@builder.io/qwik";
 import {DocumentHead, Form, routeAction$, routeLoader$, z, zod$} from "@builder.io/qwik-city";
-import {Input, Button} from '~/components/ui';
+import {Button, Input} from '~/components/ui';
 import {MoCircleAdd, MoDelete} from "@qwikest/icons/monoicons";
 import {shoppingListItems} from "../../drizzle/schema";
 import {eq} from "drizzle-orm";
@@ -14,7 +14,8 @@ export const useShoppingList = routeLoader$(async function () {
 
 export const useCreateShoppingListItem = routeAction$(async function (data) {
     if(data.text) {
-        const db = await getDb();await db.insert(shoppingListItems).values({text: data.text, order: data.order});
+        const db = await getDb();
+        await db.insert(shoppingListItems).values({text: data.text, order: data.order});
         return {success: true};
     }
 
@@ -44,7 +45,142 @@ export default component$(() => {
     const inputRef = useSignal<HTMLInputElement>();
     const isScrollToEndNeeded = useSignal(false);
     const lastOrderNumber = items.value.at(-1)?.order ?? 0;
-    const draggableItemId = useSignal<string>('');
+
+    const onDragStart = sync$(
+        (e: DragEvent, currentTarget: HTMLElement) => {
+            const itemIndex = currentTarget.getAttribute('data-id');
+            if (e.dataTransfer && itemIndex) {
+                e.dataTransfer?.setData('text/plain', itemIndex);
+
+                const dragImage = document.createElement('div');
+                dragImage.textContent = currentTarget.firstChild?.textContent ?? '🛒';
+                dragImage.style.fontSize = '1.25rem';
+                dragImage.style.color = 'white';
+                dragImage.style.position = 'absolute';
+                dragImage.style.top = '-9999px';
+                dragImage.style.background = 'transparent';
+
+
+                document.body.appendChild(dragImage);
+
+                // to center the text
+
+                const height = dragImage.offsetHeight;
+                const width = dragImage.offsetWidth;
+                e.dataTransfer.setDragImage(dragImage,width + 40, (height / 2)); // Center the emoji
+
+                // Remove the div after a brief moment
+                requestAnimationFrame(() => {
+                    if (dragImage.parentNode) {
+                        document.body.removeChild(dragImage);
+                    }
+                });
+            }
+        }
+    )
+
+    const onDragEnter = sync$((_: DragEvent, currentTarget: HTMLElement) => {
+        currentTarget.setAttribute('data-over', 'true');
+    })
+
+    const onDragLeave = sync$((e: DragEvent, currentTarget: HTMLElement) => {
+        const relatedTarget = e.relatedTarget as Node;
+        if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
+            currentTarget.removeAttribute('data-over');
+        }
+    })
+
+    const getIndexDropped = $((droppedIndexStr: undefined | string) => {
+        if (droppedIndexStr === undefined) {
+            throw new Error('droppedIndex data attribute is missing');
+        }
+
+        return parseInt(droppedIndexStr);
+    })
+
+    const onDropListElement = [
+        sync$((e: DragEvent, currentTarget: HTMLElement) => {
+            currentTarget.dataset.droppedIndex = e.dataTransfer?.getData('text');
+            currentTarget.removeAttribute('data-over');
+
+        }),
+        $(async (_: DragEvent, currentTarget: HTMLElement) => {
+            const targetIndexStr = currentTarget.getAttribute('data-id');
+
+            if (targetIndexStr === null) {
+                throw new Error('droppedIndex data attribute is missing');
+            }
+
+            const indexTarget = parseInt(targetIndexStr);
+            const indexDropped = await getIndexDropped(currentTarget.dataset.droppedIndex);
+
+            const droppedItem = items.value.at(indexDropped);
+
+            if (!droppedItem) {
+                throw new Error('droppedIndex does not exist in items array')
+            }
+
+            let newOrderDropped: number = -1;
+
+
+            if (indexDropped === indexTarget ||  indexTarget < 0 || indexTarget >= items.value.length - 1) {
+                return
+            }
+
+            if (indexTarget === 0) {
+                newOrderDropped = (items.value.at(indexTarget)?.order ?? 1) / 2;
+            } else if (indexTarget === items.value.length - 1) {
+                newOrderDropped = lastOrderNumber + 1;
+            } else {
+                let before: number | undefined;
+                let after: number | undefined;
+
+                if(indexDropped < indexTarget) { // dragging down in list
+                    before = items.value.at(indexTarget)?.order;
+                    after  = items.value.at(indexTarget + 1)?.order;
+                } else { // dragging up in list
+                    before = items.value.at(indexTarget - 1)?.order;
+                    after  = items.value.at(indexTarget)?.order;
+                }
+
+                if(before && after) {
+                    newOrderDropped = (before + after) / 2;
+                }
+
+            }
+
+            if(newOrderDropped >= 0 ){
+                await updateOrderAction.submit({id: droppedItem.id, order: newOrderDropped});
+            } else {
+                console.error('something went wrong with reordering. New order number is not assigned properly.')
+            }
+
+        }),
+    ]
+
+    const onDropBelowList = [
+        sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
+            currentTarget.dataset.droppedIndex = e.dataTransfer?.getData('text');
+        }),
+        $(async (_: DragEvent, currentTarget: HTMLElement) => {
+
+
+            const indexDropped = await getIndexDropped(currentTarget.dataset.droppedIndex)
+
+            const droppedItem = items.value.at(indexDropped);
+
+            if (!droppedItem) {
+                throw new Error('droppedIndex does not exist in items array')
+            }
+
+            if (indexDropped !== items.value.length - 1) {
+                const newOrderDropped: number = lastOrderNumber + 1;
+                await updateOrderAction.submit({id: droppedItem.id, order: newOrderDropped});
+            }
+        }),
+    ]
+
+
 
     useVisibleTask$(({track}) => {
         track(() => items.value?.length);
@@ -77,128 +213,13 @@ export default component$(() => {
                         key={item.id}
                         data-id={index}
                         draggable
-                        onDragStart$={sync$(
-                            (e: DragEvent, currentTarget: HTMLDivElement) => {
-                                const itemIndex = currentTarget.getAttribute('data-id');
-                                if (e.dataTransfer && itemIndex) {
-                                    e.dataTransfer?.setData('text/plain', itemIndex);
-                                    console.log(e.dataTransfer.getData('text'))
-
-                                    const dragImage = document.createElement('div');
-                                    dragImage.textContent = currentTarget.firstChild?.textContent ?? '🛒';
-                                    dragImage.style.fontSize = '1.25rem';
-                                    dragImage.style.color = 'white';
-                                    dragImage.style.position = 'absolute';
-                                    dragImage.style.top = '-9999px';
-                                    dragImage.style.background = 'transparent';
-
-
-                                    document.body.appendChild(dragImage);
-
-                                    // to center the text
-
-                                    const height = dragImage.offsetHeight;
-                                    console.log('offsetHeight:', height);
-                                    e.dataTransfer.setDragImage(dragImage,-20, (height / 2)); // Center the emoji
-
-                                    // Remove the div after a brief moment
-                                    requestAnimationFrame(() => {
-                                        if (dragImage.parentNode) {
-                                            document.body.removeChild(dragImage);
-                                        }
-                                    });
-                                }
-                            }
-                        )}
+                        onDragStart$={onDragStart}
                         preventdefault:dragover
                         preventdefault:drop
                         preventdefault:dragenter
-                        onDragEnter$={sync$((_: DragEvent, currentTarget: HTMLDivElement) => {
-                            currentTarget.setAttribute('data-over', 'true');
-                            const itemIndex = currentTarget.getAttribute('data-id');
-                            console.log(itemIndex)
-
-                        })}
-                        onDragLeave$={sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
-                            const relatedTarget = e.relatedTarget as Node;
-                            if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
-                                currentTarget.removeAttribute('data-over');
-                                const itemIndex = currentTarget.getAttribute('data-id');
-                                console.log('Leave:', itemIndex);
-                            }
-                        })}
-                        onDrop$={[
-                            sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
-                                const index = e.dataTransfer?.getData('text');
-                                currentTarget.dataset.droppedIndex = index;
-                                currentTarget.removeAttribute('data-over');
-
-                            }),
-                            $(async (_, currentTarget) => {
-                                const droppedIndexStr = currentTarget.dataset.droppedIndex;
-                                const targetIndexStr = currentTarget.getAttribute('data-id');
-
-                                if (droppedIndexStr === undefined) {
-                                    throw new Error('droppedIndex data attribute is missing');
-                                }
-                                if (targetIndexStr === null) {
-                                    throw new Error('droppedIndex data attribute is missing');
-                                }
-                                const indexDropped = parseInt(droppedIndexStr);
-                                const indexTarget = parseInt(targetIndexStr);
-
-                                const droppedItem = items.value.at(indexDropped);
-
-                                if (!droppedItem) {
-                                    throw new Error('droppedIndex does not exist in items array')
-                                }
-
-                                let newOrderDropped: number = -1;
-
-                                if (indexDropped !== indexTarget) {
-                                    if (indexTarget === 0) {
-                                        const before: number = 0;
-                                        const after: number = items.value.at(indexTarget)?.order ?? 1
-                                        newOrderDropped = (before + after) / 2;
-                                    } else if (indexTarget === items.value.length - 1) {
-                                        newOrderDropped = lastOrderNumber + 1;
-                                    } else if (0 < indexTarget && indexTarget < items.value.length - 1) {
-                                        let before: number | undefined;
-                                        let after: number | undefined;
-                                        if(indexDropped < indexTarget) {
-                                            before = items.value.at(indexTarget)?.order;
-                                            after  = items.value.at(indexTarget + 1)?.order;
-                                        } else {
-                                            before = items.value.at(indexTarget - 1)?.order;
-                                            after  = items.value.at(indexTarget)?.order;
-                                        }
-
-                                        if(before && after) {
-                                            newOrderDropped = (before + after) / 2;
-                                        }
-
-                                    } else {
-                                        throw new Error('index of target element is out of range for the items list')
-                                    }
-                                    console.log(newOrderDropped)
-
-                                    if(newOrderDropped >= 0 ){
-                                        await updateOrderAction.submit({id: droppedItem.id, order: newOrderDropped});
-                                    } else {
-                                        console.error('something went wrong with reordering. New order number is not assigned properly.')
-                                    }
-
-                                }
-
-                                //vier scenarios
-                                //1. dropped element and target element hebben dezelfde id --> niks gebeuren
-                                //2. target element heeft index=0 --> before element order number = 0 en after elment order number = target.order number
-                                //3. target element heeft index=array.lenght - 1 --> dropped element id = target dropped + 1
-                                //4. else before element = array[index - 1] and after element = target element
-
-
-                            }),
-                        ]}
+                        onDragEnter$={onDragEnter}
+                        onDragLeave$={onDragLeave}
+                        onDrop$={onDropListElement}
 
                     >
                         <span class="break-words flex-1 min-w-0">{item.text}</span>
@@ -217,32 +238,7 @@ export default component$(() => {
                      data-id={-1}
                      preventdefault:dragover
                      preventdefault:drop
-                     onDrop$={[
-                         sync$((e: DragEvent, currentTarget: HTMLDivElement) => {
-                             const index = e.dataTransfer?.getData('text');
-                             currentTarget.dataset.droppedIndex = index;
-                         }),
-                         $(async (_, currentTarget) => {
-                             const droppedIndexStr = currentTarget.dataset.droppedIndex;
-                             if (droppedIndexStr === undefined) {
-                                 throw new Error('droppedIndex data attribute is missing');
-                             }
-
-                             const indexDropped = parseInt(droppedIndexStr);
-
-                             const droppedItem = items.value.at(indexDropped);
-
-                             if (!droppedItem) {
-                                 throw new Error('droppedIndex does not exist in items array')
-                             }
-
-                             if (indexDropped !== items.value.length - 1) {
-                                 const newOrderDropped: number = lastOrderNumber + 1;
-                                 console.log(newOrderDropped)
-                                 await updateOrderAction.submit({id: droppedItem.id, order: newOrderDropped});
-                             }
-                         }),
-                     ]}
+                     onDrop$={onDropBelowList}
                 ></div>
             </ul>
             <div class="flex flex-row justify-center bg-primary">
