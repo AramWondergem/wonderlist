@@ -43,3 +43,6 @@ lerna-debug.log*
 
 .nx/cache
 .nx/workspace-data
+
+.claude
+CLAUDE.md
