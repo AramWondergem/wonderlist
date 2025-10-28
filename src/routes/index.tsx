@@ -219,6 +219,7 @@ export default component$(() => {
                         preventdefault:dragenter
                         onDragEnter$={onDragEnter}
                         onDragLeave$={onDragLeave}
+                      /* eslint-disable-next-line qwik/valid-lexical-scope */
                         onDrop$={onDropListElement}
 
                     >
@@ -238,6 +239,7 @@ export default component$(() => {
                      data-id={-1}
                      preventdefault:dragover
                      preventdefault:drop
+                     /* eslint-disable-next-line qwik/valid-lexical-scope */
                      onDrop$={onDropBelowList}
                 ></div>
             </ul>

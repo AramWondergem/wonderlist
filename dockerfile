@@ -41,7 +41,7 @@ ENV NODE_ENV=production
 # This is used by the application to determine the origin of requests.
 # If you don't set this, the application will default to http://localhost:3000
 # If you set a wrong origin, the application may not work correctly, for example routeAction$ will not work
-ENV ORIGIN=https://localhost:3000
+ENV ORIGIN=http://localhost:3000
 
 # Run the application as a non-root user.
 USER node

@@ -1,14 +1,10 @@
-version: '3.8'
-
 services:
-  wonderlist:
+  wonderlist-app:
     image: wonderlist:latest
     container_name: wonderlist-app
     ports:
       - "3000:3000"
     environment:
       ORIGIN: http://localhost:3000
-      DATABASE_PATH: /data/db.sqlite
-    volumes:
-      - ./drizzle/db:/data
+      DB_URL: postgresql://neondb_owner:npg_Jch21isfwxlV@ep-flat-tree-agj08uil-pooler.c-2.eu-central-1.aws.neon.tech/wonderlist?sslmode=require&channel_binding=require
     restart: unless-stopped 

@@ -5,12 +5,7 @@ import { Pool } from "pg";
 
 export const getDb = server$(function () {
   const pool = new Pool({
-    host: this.env.get('DB_HOST'),
-    port: parseInt(this.env.get('DB_PORT') || '5432'),
-    database: this.env.get('DB_NAME'),
-    user: this.env.get('DB_USERNAME'),
-    password: this.env.get('DB_PASSWORD'),
-    ssl: this.env.get('DB_SSL') === 'true',
+    connectionString: this.env.get('DB_URL'),
   });
   return drizzle(pool, { schema });
 }); 
