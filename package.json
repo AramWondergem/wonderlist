@@ -40,10 +40,9 @@
     "@qwik-ui/utils": "^0.3.2",
     "@qwikest/icons": "^0.0.13",
     "@tailwindcss/vite": "^4.1.8",
-    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "20.14.11",
+    "@types/pg": "^8.15.5",
     "autoprefixer": "^10.4.21",
-    "better-sqlite3": "^11.8.1",
     "class-variance-authority": "^0.7.0",
     "drizzle-kit": "^0.30.3",
     "drizzle-orm": "^0.39.0",
@@ -65,8 +64,10 @@
   "dependencies": {
     "@fastify/compress": "^6.2.1",
     "@fastify/static": "^6.10.1",
+    "dotenv": "^17.2.3",
     "fastify": "^4.17.0",
-    "fastify-plugin": "^4.5.0"
+    "fastify-plugin": "^4.5.0",
+    "pg": "^8.16.3"
   },
   "nx": {}
 }
